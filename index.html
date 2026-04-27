@@ -3,69 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HF Bot Ultra</title>
+<title>HF Bot</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
+* {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
 body {
     background: radial-gradient(circle at top, #0a0b10, #020203 70%);
     font-family: 'Poppins', sans-serif;
     color: #e6e6e6;
     height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
 }
 
-/* Animated background glow */
-body::before {
-    content:"";
+/* Background glow */
+.bg-glow {
     position:absolute;
     width:600px;
     height:600px;
     background: radial-gradient(circle, rgba(88,101,242,0.25), transparent 70%);
+    filter: blur(120px);
     top:-150px;
     left:-150px;
-    filter: blur(120px);
-    animation: floatGlow 8s ease-in-out infinite alternate;
+    animation: moveGlow 10s ease-in-out infinite alternate;
 }
 
-body::after {
-    content:"";
+.bg-glow2 {
     position:absolute;
     width:500px;
     height:500px;
     background: radial-gradient(circle, rgba(255,0,120,0.2), transparent 70%);
+    filter: blur(120px);
     bottom:-150px;
     right:-150px;
-    filter: blur(120px);
-    animation: floatGlow 10s ease-in-out infinite alternate-reverse;
+    animation: moveGlow 12s ease-in-out infinite alternate-reverse;
 }
 
-@keyframes floatGlow {
-    0% { transform: translate(0,0) scale(1); }
-    100% { transform: translate(50px,40px) scale(1.2); }
+@keyframes moveGlow {
+    from { transform: translate(0,0); }
+    to { transform: translate(60px,40px); }
+}
+
+/* Wrapper (fix transform conflicts) */
+.wrapper {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
 }
 
 /* Card */
 .card {
-    position: relative;
-    width: 430px;
-    padding: 25px;
-    border-radius: 20px;
+    position:relative;
+    width:420px;
+    padding:25px;
+    border-radius:20px;
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(25px);
-    border: 1px solid rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.08);
     box-shadow: 0 0 50px rgba(0,0,0,0.7);
-    transition: 0.4s;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card:hover {
-    transform: translateY(-8px) scale(1.02);
+/* Hover without breaking animation */
+.wrapper:hover .card {
+    transform: scale(1.03);
     box-shadow: 0 0 80px rgba(88,101,242,0.4);
 }
 
@@ -77,18 +90,19 @@ body::after {
     border-radius:20px;
     padding:1px;
     background: linear-gradient(120deg, transparent, #5865f2, #ff007a, transparent);
-    background-size: 300% 300%;
-    animation: borderFlow 6s linear infinite;
-    -webkit-mask: 
-        linear-gradient(#000 0 0) content-box, 
+    background-size:300% 300%;
+    animation: borderMove 6s linear infinite;
+
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
         linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
-            mask-composite: exclude;
+    mask-composite: exclude;
 }
 
-@keyframes borderFlow {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 300% 50%; }
+@keyframes borderMove {
+    from { background-position:0% 50%; }
+    to { background-position:300% 50%; }
 }
 
 /* Header */
@@ -108,17 +122,13 @@ body::after {
     justify-content:center;
     font-weight:600;
     margin-right:12px;
-    box-shadow: 0 0 20px rgba(88,101,242,0.8);
     animation: pulse 2.5s infinite;
 }
 
 @keyframes pulse {
-    0% { box-shadow: 0 0 15px rgba(88,101,242,0.6); }
-    50% { box-shadow: 0 0 30px rgba(255,0,120,0.9); }
-    100% { box-shadow: 0 0 15px rgba(88,101,242,0.6); }
+    0%,100% { box-shadow:0 0 15px rgba(88,101,242,0.6); }
+    50% { box-shadow:0 0 30px rgba(255,0,120,0.9); }
 }
-
-.bot-name { font-weight:600; }
 
 .bot-tag {
     font-size:11px;
@@ -128,12 +138,6 @@ body::after {
     margin-left:6px;
 }
 
-/* Title */
-.title {
-    margin-bottom:15px;
-    opacity:0.9;
-}
-
 /* Commands */
 .command {
     margin:12px 0;
@@ -141,17 +145,17 @@ body::after {
     border-radius:14px;
     background: rgba(255,255,255,0.02);
     border:1px solid rgba(255,255,255,0.05);
-    transition:0.3s;
     position:relative;
     overflow:hidden;
+    transition: all 0.25s ease;
 }
 
 .command:hover {
-    transform: translateX(6px) scale(1.02);
+    transform: translateX(6px);
     background: rgba(255,255,255,0.06);
 }
 
-/* shimmer hover */
+/* shimmer */
 .command::after {
     content:"";
     position:absolute;
@@ -160,7 +164,7 @@ body::after {
     width:100%;
     height:100%;
     background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition:0.5s;
+    transition:left 0.5s ease;
 }
 
 .command:hover::after {
@@ -172,60 +176,51 @@ body::after {
     font-weight:600;
 }
 
-/* subtext */
 .sub {
     margin-top:5px;
     font-size:13px;
     opacity:0.75;
 }
 
-/* subtle floating */
-.card {
-    animation: floatCard 6s ease-in-out infinite;
-}
-
-@keyframes floatCard {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-6px); }
-    100% { transform: translateY(0px); }
-}
-
 </style>
-
 </head>
+
 <body>
 
-<div class="card">
+<div class="bg-glow"></div>
+<div class="bg-glow2"></div>
 
-    <div class="header">
-        <div class="avatar">HF</div>
-        <div class="bot-name">
-            HAVE FVCKED <span class="bot-tag">BOT</span>
+<div class="wrapper">
+    <div class="card">
+
+        <div class="header">
+            <div class="avatar">HF</div>
+            <div>
+                HAVE FVCKED <span class="bot-tag">BOT</span>
+            </div>
         </div>
+
+        <div class="command">
+            <span>/split</span>
+            <div class="sub">🎤 Vocal • 🎸 Bass • 🥁 Drums • 🎵 Melody</div>
+        </div>
+
+        <div class="command">
+            <span>/bpm</span>
+            <div class="sub">Analiza tempa</div>
+        </div>
+
+        <div class="command">
+            <span>/key</span>
+            <div class="sub">Wykrywanie tonacji</div>
+        </div>
+
+        <div class="command">
+            <span>/convert</span>
+            <div class="sub">Konwersja → WAV</div>
+        </div>
+
     </div>
-
-    <div class="title">📜 Lista komend Twojego bota</div>
-
-    <div class="command">
-        <span>/split</span>
-        <div class="sub">🎤 Vocal • 🎸 Bass • 🥁 Drums • 🎵 Melody</div>
-    </div>
-
-    <div class="command">
-        <span>/bpm</span>
-        <div class="sub">Analiza tempa utworu</div>
-    </div>
-
-    <div class="command">
-        <span>/key</span>
-        <div class="sub">Wykrywanie tonacji (key)</div>
-    </div>
-
-    <div class="command">
-        <span>/convert</span>
-        <div class="sub">Konwersja audio → WAV</div>
-    </div>
-
 </div>
 
 </body>
