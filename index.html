@@ -1,1 +1,924 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HAVE FVCKED — Audio Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --surface2: #181818;
+    --border: #222222;
+    --border2: #2a2a2a;
+    --accent: #7289da;
+    --accent2: #5b6eae;
+    --green: #43b581;
+    --red: #f04747;
+    --amber: #faa61a;
+    --text: #e8e8e8;
+    --muted: #666;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
 
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Noise overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── Header ── */
+  header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8,8,8,0.95);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: #fff;
+    letter-spacing: 1px;
+    position: relative;
+  }
+
+  .logo-avatar::after {
+    content: '';
+    width: 10px; height: 10px;
+    background: var(--green);
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    position: absolute;
+    bottom: -1px; right: -1px;
+  }
+
+  .logo-name {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: #fff;
+  }
+
+  .logo-badge {
+    font-size: 9px;
+    background: var(--accent);
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    font-weight: 500;
+  }
+
+  .header-invite {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 2px;
+    border: 1px solid var(--accent);
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .header-invite:hover { background: rgba(114,137,218,0.1); }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    z-index: 5;
+    text-align: center;
+    padding: 80px 40px 60px;
+  }
+
+  .hero-tag {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(56px, 10vw, 96px);
+    letter-spacing: 6px;
+    line-height: 0.95;
+    color: #fff;
+  }
+
+  .hero-title span {
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.7;
+  }
+
+  /* ── Main container ── */
+  .container {
+    position: relative;
+    z-index: 5;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── URL Input area ── */
+  .input-section {
+    margin-bottom: 40px;
+  }
+
+  .input-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .url-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .url-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .url-input::placeholder { color: var(--muted); }
+  .url-input:focus { border-color: var(--accent); }
+
+  .btn-load {
+    padding: 14px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .btn-load:hover { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+
+  /* ── Track info preview ── */
+  .track-preview {
+    display: none;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 14px;
+  }
+  .track-preview.visible { display: flex; }
+
+  .track-thumb {
+    width: 56px; height: 56px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--surface2);
+  }
+
+  .track-info { flex: 1; overflow: hidden; }
+  .track-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .track-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Tools grid ── */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 560px) { .tools-grid { grid-template-columns: 1fr; } }
+
+  .tool-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 24px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tool-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-accent, var(--accent));
+    transform: scaleX(0);
+    transition: transform 0.2s;
+  }
+
+  .tool-card:hover { border-color: var(--card-accent, var(--accent)); transform: translateY(-2px); }
+  .tool-card:hover::before { transform: scaleX(1); }
+
+  .tool-card.split-card { grid-column: 1 / -1; }
+
+  .card-cmd {
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--card-accent, var(--accent));
+    margin-bottom: 6px;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+
+  .btn-run {
+    display: inline-block;
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid var(--card-accent, var(--accent));
+    color: var(--card-accent, var(--accent));
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    text-transform: uppercase;
+  }
+
+  .btn-run:hover {
+    background: var(--card-accent, var(--accent));
+    color: #000;
+  }
+
+  .btn-run:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .stems-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .stem-chip {
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    font-weight: 500;
+  }
+  .stem-chip.vocal { background: rgba(114,137,218,0.15); color: var(--accent); }
+  .stem-chip.bass   { background: rgba(240,71,71,0.15); color: var(--red); }
+  .stem-chip.drums  { background: rgba(250,166,26,0.15); color: var(--amber); }
+  .stem-chip.melody { background: rgba(67,181,129,0.15); color: var(--green); }
+
+  /* ── Result panel ── */
+  .result-panel {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 28px;
+    display: none;
+    margin-top: 0;
+  }
+  .result-panel.visible { display: block; }
+
+  .result-title {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .result-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* BPM / Key result */
+  .metric-big {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 0;
+  }
+
+  .metric {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .metric-value {
+    font-family: var(--font-display);
+    font-size: 52px;
+    letter-spacing: 2px;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .metric-value.key-val {
+    font-size: 36px;
+    color: var(--accent);
+  }
+
+  /* Stems download */
+  .stems-download {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 480px) { .stems-download { grid-template-columns: 1fr; } }
+
+  .stem-dl-card {
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: border-color 0.15s;
+  }
+  .stem-dl-card:hover { border-color: var(--stem-color); }
+
+  .stem-dl-name {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: var(--stem-color);
+  }
+
+  .stem-dl-sub { font-size: 11px; color: var(--muted); }
+
+  .btn-dl {
+    padding: 8px 14px;
+    border: 1px solid var(--stem-color);
+    background: transparent;
+    color: var(--stem-color);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    display: inline-block;
+  }
+  .btn-dl:hover {
+    background: var(--stem-color);
+    color: #000;
+  }
+
+  /* ── Progress bar ── */
+  .progress-wrap {
+    display: none;
+    margin-top: 20px;
+  }
+  .progress-wrap.visible { display: block; }
+
+  .progress-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  /* ── Error ── */
+  .error-msg {
+    background: rgba(240,71,71,0.08);
+    border: 1px solid rgba(240,71,71,0.3);
+    color: var(--red);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    display: none;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+  .error-msg.visible { display: block; }
+
+  /* ── Footer ── */
+  footer {
+    position: relative;
+    z-index: 5;
+    border-top: 1px solid var(--border);
+    padding: 24px 40px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ── Spinner ── */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  /* ── Pulse dot ── */
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .pulse { animation: pulse 1.5s ease infinite; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-avatar">HF</div>
+    <div>
+      <span class="logo-name">HAVE FVCKED</span>
+      <span class="logo-badge">BOT</span>
+    </div>
+  </div>
+  <a class="header-invite" href="https://dsc.gg/havefvcked" target="_blank">
+    &#43; ZAPROŚ BOTA
+  </a>
+</header>
+
+<section class="hero">
+  <div class="hero-tag">Discord Audio Bot</div>
+  <h1 class="hero-title">AUDIO<br><span>TOOLS</span></h1>
+  <p class="hero-sub">Wklej link z YouTube — analizuj BPM, tonację i rozdziel utwór na 4 ścieżki.</p>
+</section>
+
+<main class="container">
+
+  <!-- URL Input -->
+  <div class="input-section">
+    <label class="input-label" for="ytUrl">Link YouTube</label>
+    <div class="url-row">
+      <input
+        class="url-input"
+        id="ytUrl"
+        type="text"
+        placeholder="https://www.youtube.com/watch?v=..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="btn-load" id="btnLoad">WCZYTAJ</button>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="track-preview" id="trackPreview">
+      <img class="track-thumb" id="trackThumb" src="" alt="">
+      <div class="track-info">
+        <div class="track-title" id="trackTitle"></div>
+        <div class="track-meta" id="trackMeta"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tools -->
+  <div class="tools-grid" id="toolsGrid" style="display:none">
+
+    <!-- BPM -->
+    <div class="tool-card" style="--card-accent: #7289da">
+      <div class="card-cmd">/BPM</div>
+      <div class="card-desc">Wykrywa tempo utworu w uderzeniach na minutę używając librosa beat tracking.</div>
+      <button class="btn-run" id="btnBpm">ANALIZUJ BPM</button>
+    </div>
+
+    <!-- KEY -->
+    <div class="tool-card" style="--card-accent: #43b581">
+      <div class="card-cmd">/KEY</div>
+      <div class="card-desc">Wykrywa tonację (np. C major, F# minor) metodą Krumhansl-Schmuckler.</div>
+      <button class="btn-run" id="btnKey">ANALIZUJ TONACJĘ</button>
+    </div>
+
+    <!-- SPLIT -->
+    <div class="tool-card split-card" style="--card-accent: #faa61a">
+      <div class="card-cmd">/SPLIT</div>
+      <div class="card-desc">Rozdziela utwór na 4 osobne ścieżki audio gotowe do pobrania. Używa modelu htdemucs.</div>
+      <div class="stems-row">
+        <span class="stem-chip vocal">Vocal</span>
+        <span class="stem-chip bass">Bass</span>
+        <span class="stem-chip drums">Drums</span>
+        <span class="stem-chip melody">Melody</span>
+      </div>
+      <button class="btn-run" id="btnSplit">ROZDZIEL UTWÓR</button>
+    </div>
+
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-label">
+      <span id="progressLabel"><span class="spinner pulse"></span> Ładowanie...</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-panel" id="resultPanel">
+    <div class="result-title" id="resultTitle">WYNIK</div>
+    <div id="resultContent"></div>
+  </div>
+
+</main>
+
+<footer>
+  <a href="https://dsc.gg/havefvcked" target="_blank">dsc.gg/havefvcked</a>
+  &nbsp;&mdash;&nbsp; HAVE FVCKED Bot &copy; 2024
+</footer>
+
+<script>
+const API = window.API_BASE || '';  // set via nginx or leave empty for same-origin
+
+let currentUrl = '';
+let currentJobId = null;
+let pollTimer = null;
+
+// ── Elements ──────────────────────────────────────────────────────────────────
+const ytUrl      = document.getElementById('ytUrl');
+const btnLoad    = document.getElementById('btnLoad');
+const errorMsg   = document.getElementById('errorMsg');
+const trackPreview = document.getElementById('trackPreview');
+const trackThumb   = document.getElementById('trackThumb');
+const trackTitle   = document.getElementById('trackTitle');
+const trackMeta    = document.getElementById('trackMeta');
+const toolsGrid    = document.getElementById('toolsGrid');
+const btnBpm       = document.getElementById('btnBpm');
+const btnKey       = document.getElementById('btnKey');
+const btnSplit     = document.getElementById('btnSplit');
+const progressWrap = document.getElementById('progressWrap');
+const progressFill = document.getElementById('progressFill');
+const progressPct  = document.getElementById('progressPct');
+const progressLabel = document.getElementById('progressLabel');
+const resultPanel  = document.getElementById('resultPanel');
+const resultTitle  = document.getElementById('resultTitle');
+const resultContent = document.getElementById('resultContent');
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.classList.add('visible');
+}
+
+function hideError() {
+  errorMsg.classList.remove('visible');
+}
+
+function showProgress(label, pct) {
+  progressWrap.classList.add('visible');
+  progressLabel.innerHTML = `<span class="spinner pulse"></span> ${label}`;
+  progressFill.style.width = pct + '%';
+  progressPct.textContent = pct + '%';
+}
+
+function hideProgress() {
+  progressWrap.classList.remove('visible');
+  progressFill.style.width = '0%';
+}
+
+function showResult(titleText, html) {
+  resultTitle.textContent = titleText;
+  resultContent.innerHTML = html;
+  resultPanel.classList.add('visible');
+}
+
+function hideResult() {
+  resultPanel.classList.remove('visible');
+}
+
+function fmtDuration(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function setButtons(disabled) {
+  [btnBpm, btnKey, btnSplit].forEach(b => b.disabled = disabled);
+}
+
+function stopPoll() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+// ── Load track info ───────────────────────────────────────────────────────────
+btnLoad.addEventListener('click', loadTrack);
+ytUrl.addEventListener('keydown', e => { if (e.key === 'Enter') loadTrack(); });
+
+async function loadTrack() {
+  const url = ytUrl.value.trim();
+  if (!url) { showError('Wklej link YouTube.'); return; }
+  hideError();
+  hideResult();
+  stopPoll();
+  trackPreview.classList.remove('visible');
+  toolsGrid.style.display = 'none';
+  btnLoad.textContent = '...';
+  btnLoad.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/api/info`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({url}),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Błąd serwera');
+
+    currentUrl = url;
+    trackThumb.src = data.thumbnail || '';
+    trackTitle.textContent = data.title;
+    trackMeta.textContent = `${data.uploader} · ${fmtDuration(data.duration)}`;
+    trackPreview.classList.add('visible');
+    toolsGrid.style.display = 'grid';
+    setButtons(false);
+
+  } catch(err) {
+    showError('Nie można wczytać: ' + err.message);
+  } finally {
+    btnLoad.textContent = 'WCZYTAJ';
+    btnLoad.disabled = false;
+  }
+}
+
+// ── BPM ───────────────────────────────────────────────────────────────────────
+btnBpm.addEventListener('click', async () => {
+  if (!currentUrl) return;
+  hideError(); hideResult(); stopPoll();
+  setButtons(true);
+  showProgress('Pobieranie audio...', 10);
+
+  try {
+    const res = await fetch(`${API}/api/analyze`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({url: currentUrl}),
+    });
+    const {job_id} = await res.json();
+    currentJobId = job_id;
+
+    pollTimer = setInterval(async () => {
+      const jr = await fetch(`${API}/api/job/${job_id}`);
+      const job = await jr.json();
+
+      if (job.status === 'downloading') showProgress('Pobieranie audio z YouTube...', 20);
+      if (job.status === 'analyzing')   showProgress('Analiza BPM...', 60);
+
+      if (job.status === 'done') {
+        stopPoll(); hideProgress(); setButtons(false);
+        showResult('BPM', `
+          <div class="metric-big">
+            <div class="metric">
+              <span class="metric-label">Tempo</span>
+              <span class="metric-value">${job.bpm}</span>
+              <span style="font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:1px">BPM</span>
+            </div>
+          </div>
+        `);
+      }
+
+      if (job.status === 'error') {
+        stopPoll(); hideProgress(); setButtons(false);
+        showError('Błąd: ' + job.error);
+      }
+    }, 1500);
+
+  } catch(err) {
+    hideProgress(); setButtons(false);
+    showError('Błąd połączenia: ' + err.message);
+  }
+});
+
+// ── KEY ───────────────────────────────────────────────────────────────────────
+btnKey.addEventListener('click', async () => {
+  if (!currentUrl) return;
+  hideError(); hideResult(); stopPoll();
+  setButtons(true);
+  showProgress('Pobieranie audio...', 10);
+
+  try {
+    const res = await fetch(`${API}/api/analyze`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({url: currentUrl}),
+    });
+    const {job_id} = await res.json();
+    currentJobId = job_id;
+
+    pollTimer = setInterval(async () => {
+      const jr = await fetch(`${API}/api/job/${job_id}`);
+      const job = await jr.json();
+
+      if (job.status === 'downloading') showProgress('Pobieranie audio z YouTube...', 20);
+      if (job.status === 'analyzing')   showProgress('Analiza tonacji (chroma)...', 60);
+
+      if (job.status === 'done') {
+        stopPoll(); hideProgress(); setButtons(false);
+        const [note, mode] = job.key.split(' ');
+        showResult('TONACJA', `
+          <div class="metric-big">
+            <div class="metric">
+              <span class="metric-label">Tonacja</span>
+              <span class="metric-value key-val">${note}</span>
+              <span style="font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:2px;text-transform:uppercase">${mode}</span>
+            </div>
+            <div class="metric" style="border-left:1px solid var(--border);padding-left:32px">
+              <span class="metric-label">BPM (bonus)</span>
+              <span class="metric-value" style="font-size:36px">${job.bpm}</span>
+            </div>
+          </div>
+        `);
+      }
+
+      if (job.status === 'error') {
+        stopPoll(); hideProgress(); setButtons(false);
+        showError('Błąd: ' + job.error);
+      }
+    }, 1500);
+
+  } catch(err) {
+    hideProgress(); setButtons(false);
+    showError('Błąd połączenia: ' + err.message);
+  }
+});
+
+// ── SPLIT ─────────────────────────────────────────────────────────────────────
+const STEM_COLORS = {
+  Vocal:  '#7289da',
+  Bass:   '#f04747',
+  Drums:  '#faa61a',
+  Melody: '#43b581',
+};
+
+btnSplit.addEventListener('click', async () => {
+  if (!currentUrl) return;
+  hideError(); hideResult(); stopPoll();
+  setButtons(true);
+  showProgress('Pobieranie audio...', 5);
+
+  try {
+    const res = await fetch(`${API}/api/split`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({url: currentUrl}),
+    });
+    const {job_id} = await res.json();
+    currentJobId = job_id;
+
+    pollTimer = setInterval(async () => {
+      const jr = await fetch(`${API}/api/job/${job_id}`);
+      const job = await jr.json();
+
+      const pctMap = {downloading: 15, splitting: 50};
+      const labelMap = {
+        downloading: 'Pobieranie audio z YouTube...',
+        splitting: 'Rozdzielanie na ścieżki (demucs htdemucs)...',
+      };
+      if (labelMap[job.status]) {
+        showProgress(labelMap[job.status], job.progress || pctMap[job.status]);
+      }
+
+      if (job.status === 'done') {
+        stopPoll(); hideProgress(); setButtons(false);
+
+        const stems = job.stems || ['Vocal', 'Bass', 'Drums', 'Melody'];
+        const cards = stems.map(stem => {
+          const c = STEM_COLORS[stem] || '#888';
+          return `
+            <div class="stem-dl-card" style="--stem-color:${c}">
+              <div>
+                <div class="stem-dl-name">${stem}</div>
+                <div class="stem-dl-sub">.wav · 44.1kHz</div>
+              </div>
+              <a class="btn-dl" href="${API}/api/download/${job_id}/${stem}" download="${stem}.wav">
+                &#8595; POBIERZ
+              </a>
+            </div>
+          `;
+        }).join('');
+
+        showResult('ŚCIEŻKI', `<div class="stems-download">${cards}</div>`);
+      }
+
+      if (job.status === 'error') {
+        stopPoll(); hideProgress(); setButtons(false);
+        showError('Błąd: ' + job.error);
+      }
+    }, 2000);
+
+  } catch(err) {
+    hideProgress(); setButtons(false);
+    showError('Błąd połączenia: ' + err.message);
+  }
+});
+</script>
+</body>
+</html>
